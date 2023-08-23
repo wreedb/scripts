@@ -1,0 +1,8 @@
+#+TITLE: Scripts
+#+AUTHOR: Will Reed
+
+This repository is where I will be storing all of my personal scripts. \\
+Anything from setting a random wallpaper to volume control, notifications, \\
+etc. I tend to write many of my scripts in Perl, since it is very \\
+versatile and shell-centric, but some are just plain shell scripts. \\
+The shell scripts are posix compliant, no bash-isms.

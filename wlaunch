@@ -1,0 +1,34 @@
+#!/bin/zsh
+
+. "$XDG_CONFIG_HOME/zsh/.zshenv"
+
+app="$1";
+shift;
+
+case "$app" in
+    launcher)
+        exec "${LAUNCHER}" "${@}" >/dev/null 2>&1 & disown;
+        ;;
+    terminal)
+        exec "${TERMINAL}" "${@}" >/dev/null 2>&1 & disown;
+        ;;
+    editor)
+        exec "${EDITOR}" "${@}" >/dev/null 2>&1 & disown;
+        ;;
+    browser)
+        exec "${BROWSER}" "${@}" >/dev/null 2>&1 & disown;
+        ;;
+    mediaplayer)
+        exec "${MEDIAPLAYER}" "${@}" & disown;
+        ;;
+    imageviewer)
+        exec "${IMAGEVIEWER}" "${@}" & disown;
+        ;;
+    filemanager)
+        exec "${FILEMANAGER}" "${@}" >/dev/null 2>&1 & disown;
+        ;;
+    *)
+        printf '%s\n' "Argument required."
+        exit 1;
+        ;;
+esac

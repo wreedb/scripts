@@ -1,0 +1,12 @@
+#!/bin/env perl
+
+use strict;
+use warnings;
+
+my $pictures_dir = `xdg-user-dir PICTURES`; chomp $pictures_dir;
+
+my $wallpapers_dir = "${pictures_dir}/wallpapers";
+
+my $random_wallpaper = `find ${wallpapers_dir} -type f | xargs basename -a | shuf -n 1`; chomp $random_wallpaper;
+
+system "ln -sf ${wallpapers_dir}/${random_wallpaper} ${wallpapers_dir}/random.png";

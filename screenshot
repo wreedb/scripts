@@ -1,0 +1,169 @@
+#!/bin/env perl
+
+use strict;
+use warnings;
+use Getopt::Long;
+use POSIX qw(strftime);
+
+my $usage = <<'EOF';
+Usage: screenshot [options...]
+
+  --select, -s
+    custom selection for screenshot
+
+  --wait, -s n
+    wait 'n' seconds before screenshot
+
+  --cursor, -c
+    show cursor in screenshot, default: off
+
+  --opts, -x
+    extra options to pass to grim/maim, in quotes
+
+  --no-notif, -n
+    do not send a notification when taking screenshot
+
+EOF
+
+
+my $version = <<'EOF';
+screenshot v0.0.1 (Will Reed - https://github.com/wreedb)
+EOF
+
+my $display_server = '';
+
+my $time_posix = strftime '%d-%m-%Y_%H-%M-%S', localtime;
+my $pictures_dir = `xdg-user-dir PICTURES`;
+chomp $pictures_dir;
+
+my $screenshots_dir = "$pictures_dir/screenshots";
+
+GetOptions(
+    'select|s'       => \my $select,
+    'wait|w=i'       => \my $wait_seconds,
+    'cursor|c'       => \my $cursor,
+    'opts|x=s'       => \my $extra_opts,
+    'no-nofif|n'     => \my $no_notif,
+    'help|h'         => \my $help,
+    'version|v'      => \my $version_opt
+
+) or die "Invalid command line options given to $0, see --help for usage info";
+
+if ($help)
+{
+    print($usage);
+    exit 0;
+}
+
+if ($version_opt)
+{
+    print($version);
+    exit 0;
+}
+
+if (! -d $screenshots_dir) {
+    print("\x1B[1;32mSCREENSHOT\x1B[0m: creating screenshots directory...\n");
+    mkdir($screenshots_dir);
+}
+
+my $grim = 'grim';
+my $maim = 'maim';
+
+my $file_name = "SCREEN_${time_posix}.png";
+my $file_path = "${screenshots_dir}/${file_name}";
+
+sub get_display_server
+{
+    $display_server = $ENV{'XDG_SESSION_TYPE'};
+}
+
+&get_display_server;
+
+if ($display_server eq 'wayland') { &wayland } else { &x11 }
+
+my $geometry = '';
+
+
+sub x11
+{
+    if ($select)
+    {
+        $geometry = &x_get_geometry;
+        print("\x1B[1;32mSCREENSHOT\x1B[0m: geometry selected -> ${geometry}\n");
+    }
+    if ($geometry)   { $maim .= " -g '${geometry}'" }
+    if ($extra_opts) { $maim .= " ${extra_opts}"    }
+    if ($cursor)     { $maim .= " -u";              }
+    
+    if ($wait_seconds)
+    {
+        print("\x1B[1;32mSCREENSHOT\x1B[0m: waiting \x1B[3m${wait_seconds}\x1B[0m seconds...\n");
+        &wait($wait_seconds);
+    }
+    
+    print("\x1B[1;32mSCREENSHOT\x1B[0m: running \x1B[3m${maim} ${file_path}\x1B[0m\n");
+    system("$maim $file_path");
+    
+    unless ($no_notif)
+    {
+        notif();
+    }
+
+    exit 0;
+}
+
+sub wayland
+{
+    if ($select)
+    {
+        $geometry = &w_get_geometry;
+        print("\x1B[1;32mSCREENSHOT\x1B[0m: geometry selected -> ${geometry}\n");
+    }
+
+    if ($geometry)   { $grim .= " -g '${geometry}'" }
+    if ($extra_opts) { $grim .= " ${extra_opts}"    }
+    if ($cursor)     { $grim .= " -c";              }
+    
+    if ($wait_seconds)
+    {
+        print("\x1B[1;32mSCREENSHOT\x1B[0m: waiting \x1B[3m${wait_seconds}\x1B[0m seconds...\n");
+        &wait($wait_seconds);
+    }
+    
+    print("\x1B[1;32mSCREENSHOT\x1B[0m: running \x1B[3m${grim} ${file_path}\x1B[0m\n");
+    system("$grim $file_path");
+    
+    unless ($no_notif)
+    {
+        notif();
+    }
+
+    exit 0;
+}
+
+
+sub wait
+{
+    sleep($_[0]);
+    return;
+}
+
+sub x_get_geometry
+{
+    my $geometry = `slop`;
+    chomp($geometry);
+    return $geometry;
+}
+
+sub w_get_geometry
+{
+    my $geometry = `slurp -d -b '#00000050' -c '#6AA1FD'`;
+    chomp($geometry);
+    return $geometry;
+}
+
+sub notif
+{
+    system("notify-send --category=screenshot --icon=${file_path} 'Screenshot taken' '${file_path}'");
+    return;
+}

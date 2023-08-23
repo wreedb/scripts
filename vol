@@ -1,0 +1,46 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Getopt::Long;
+
+GetOptions(
+    "up|u"   => \my $up,
+    "down|d" => \my $down,
+    "mute|m" => \my $mute,
+    "help|h" => \my $help
+) or die "Invalid command given to $0, see --help for usage information";
+
+if ($up) {
+  
+  system "pamixer -i 5";
+  my $current_volume = `pamixer --get-volume`; chomp $current_volume;
+  system "notify-send --app-name=pipewire --category=volume -t 1000 'Volume: ${current_volume}'";
+
+} elsif ($down) {
+  
+  system "pamixer -d 5";
+  my $current_volume = `pamixer --get-volume`; chomp $current_volume;
+  system "notify-send --app-name=pipewire --category=volume -t 1000 'Volume: ${current_volume}'";
+
+} elsif ($mute) {
+  
+  system "pamixer -t";
+
+  my $is_mute = `pamixer --get-mute`; chomp $is_mute;
+
+  if ($is_mute eq "true") {
+    system "notify-send --app-name=pipewire --category=volume -t 1000 'Volume: Muted'";
+  } else {
+    system "notify-send --app-name=pipewire --category=volume -t 1000 'Volume: Unmuted'";
+  }
+
+} elsif ($help) {
+ 
+  print "\x1B[1;3mvol\x1B[0m - USAGE:\n\n\t--up/-u\t\tIncrease volume by 5%\n\t--down/-d\tDecrease volume by 5%\n\t--mute/-m\tMute/Unmute volume\n\n";
+
+} else {
+
+  print "\x1B[1;3mvol\x1B[0m - USAGE:\n\n\t--up/-u\t\tIncrease volume by 5%\n\t--down/-d\tDecrease volume by 5%\n\t--mute/-m\tMute/Unmute volume\n\n";
+
+}

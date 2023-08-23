@@ -1,0 +1,30 @@
+#!/bin/env perl
+
+use strict;
+use warnings;
+
+my $updates = `checkupdates`;
+my $icon = '/usr/share/icons/rose-pine/128x128/mimetypes/package-x-generic.svg';
+
+chomp $updates;
+
+my @lines = split /\n/, $updates;
+my $outstring = '';
+my $number_of_updates = scalar(@lines);
+
+foreach my $line (@lines) {
+    my @thisline = split /\x20/, $line;
+    $outstring .= "$thisline[0], ";
+}
+
+$outstring =~ s|, $|\n|g;
+
+open my $fh, '+>', "/tmp/_pacman-updates" or die "Couldn't access file /tmp/_pacman-updates";
+
+print $fh $outstring;
+
+close $fh;
+
+my $updates_cat = `cat /tmp/_pacman-updates`;
+
+system "notify-send --category='packages' --icon=$icon '$number_of_updates Updates Available!' '$updates_cat'";

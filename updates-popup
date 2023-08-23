@@ -1,0 +1,21 @@
+#!/bin/sh
+
+cat << EOF
+
+░█░█░█▀█░█▀▄░█▀█░▀█▀░█▀▀░█▀▀
+░█░█░█▀▀░█░█░█▀█░░█░░█▀▀░▀▀█
+░▀▀▀░▀░░░▀▀░░▀░▀░░▀░░▀▀▀░▀▀▀
+
+EOF
+
+checkupdates | perl -F'\x20' -lane 'print "@F[0]"'| perl -pe 's|\n| |g;' | perl -pe  's|$|\n|g'
+printf '\n'
+
+printf 'Update (y/n)? '
+read -r answer
+
+if [ "$answer" != "${answer#[Yy]}" ] ;then 
+    doas pacman -Syyu
+else
+    exit
+fi

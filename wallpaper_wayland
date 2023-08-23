@@ -1,0 +1,6 @@
+#!/bin/env sh
+
+random_wallpaper
+
+swww query > /dev/null 2>&1 && swww kill > /dev/null 2>&1
+swww init > /dev/null 2>&1 && swww img "$HOME/pictures/wallpapers/random.png" > /dev/null 2>&1
