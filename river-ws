@@ -1,0 +1,37 @@
+#!/bin/sh
+
+[ -n "$1" ] || exit
+
+case "$1" in
+    1)
+    riverctl set-focused-tags 1
+    ;;
+    2)
+    riverctl set-focused-tags 2
+    ;;
+    3)
+    riverctl set-focused-tags 4
+    ;;
+    4)
+    riverctl set-focused-tags 8
+    ;;
+    5)
+    riverctl set-focused-tags 16
+    ;;
+    6)
+    riverctl set-focused-tags 32
+    ;;
+    7)
+    riverctl set-focused-tags 64
+    ;;
+    8)
+    riverctl set-focused-tags 128
+    ;;
+    9)
+    riverctl set-focused-tags 256
+    ;;
+    *)
+    printf 'invalid argument\n'
+    exit
+    ;;
+esac

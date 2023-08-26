@@ -1,0 +1,24 @@
+#!/bin/sh
+
+case $1 in
+    1)
+    hyprctl dispatch movetoworkspacesilent 1;;
+    2)
+    hyprctl dispatch movetoworkspacesilent 2;;
+    3)
+    hyprctl dispatch movetoworkspacesilent 3;;
+    4)
+    hyprctl dispatch movetoworkspacesilent 4;;
+    5)
+    hyprctl dispatch movetoworkspacesilent 5;;
+    6)
+    hyprctl dispatch movetoworkspacesilent 6;;
+    7)
+    hyprctl dispatch movetoworkspacesilent 7;;
+    8)
+    hyprctl dispatch movetoworkspacesilent 8;;
+    9)
+    hyprctl dispatch movetoworkspacesilent 9;;
+    *)
+    printf 'Invalid argument: %s, expected 1-9\n' "$1";;
+esac

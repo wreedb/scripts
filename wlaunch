@@ -1,31 +1,31 @@
-#!/bin/zsh
+#!/bin/bash
 
-. "$XDG_CONFIG_HOME/zsh/.zshenv"
+. $HOME/.config/env/profile
 
-app="$1";
-shift;
+app=$1
+shift
 
 case "$app" in
     launcher)
-        exec "${LAUNCHER}" "${@}" >/dev/null 2>&1 & disown;
+        exec "$LAUNCHER" "${@}" >/dev/null 2>&1 & disown;
         ;;
     terminal)
-        exec "${TERMINAL}" "${@}" >/dev/null 2>&1 & disown;
+        exec "$TERMINAL" "${@}" >/dev/null 2>&1 & disown;
         ;;
     editor)
-        exec "${EDITOR}" "${@}" >/dev/null 2>&1 & disown;
+        exec "$EDITOR" "${@}" >/dev/null 2>&1 & disown;
         ;;
     browser)
-        exec "${BROWSER}" "${@}" >/dev/null 2>&1 & disown;
+        exec "$BROWSER" "${@}" >/dev/null 2>&1 & disown;
         ;;
     mediaplayer)
-        exec "${MEDIAPLAYER}" "${@}" & disown;
+        exec "$MEDIAPLAYER" "${@}" & disown;
         ;;
     imageviewer)
-        exec "${IMAGEVIEWER}" "${@}" & disown;
+        exec "$IMAGEVIEWER" "${@}" & disown;
         ;;
     filemanager)
-        exec "${FILEMANAGER}" "${@}" >/dev/null 2>&1 & disown;
+        exec "$FILEMANAGER" "${@}" >/dev/null 2>&1 & disown;
         ;;
     *)
         printf '%s\n' "Argument required."
