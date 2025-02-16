@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# this script is for sending a window to tag [1-9] in the river
+# wayland compositor
+
 [ -n "$1" ] || exit
 
 case "$1" in

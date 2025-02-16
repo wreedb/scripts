@@ -1,0 +1,8 @@
+--ignore=".git"
+--ignore=".editorconfig"
+--ignore=".gitignore"
+--ignore="LICENSE"
+--ignore="README.org"
+--ignore=".gitattributes"
+--ignore=".stowrc"
+--verbose=1

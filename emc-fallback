@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# this will run emacs without flashbanging you!
+
+exec emacs --background-color "#1A1D27" \
+           --foreground-color "#D7D7D7" \
+           "$@"
