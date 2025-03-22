@@ -1,0 +1,4 @@
+#!/bin/sh
+# -*- bash-ts -*- vim:ft=bash
+
+exec /usr/bin/env -S guile -l "${XDG_CONFIG_HOME}/guile/init.scm"

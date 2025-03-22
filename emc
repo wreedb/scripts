@@ -1,8 +1,0 @@
-#!/bin/sh
-
-# this is just a wrapper to try launching emacs through the daemon
-# then falling back to another script with specific flags
-
-exec emacsclient \
-    --alternate-editor emc-fallback \
-    --create-frame "$@"

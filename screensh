@@ -1,0 +1,110 @@
+#!/usr/bin/guile -s
+!#
+
+(use-modules (ice-9 format)
+			 (ice-9 getopt-long)
+			 (ice-9 popen)
+			 (ice-9 rdelim)
+			 (ice-9 ftw)
+			 (srfi srfi-19))
+
+(define option-spec
+  '((help    (single-char #\h) (value #f))
+	(select  (single-char #\s) (value #f))
+	(display (single-char #\d) (value #t))
+	(wait    (single-char #\w) (value #t))
+	(output  (single-char #\o) (value #t))
+	(notify  (single-char #\n) (value #f))
+	(copy    (single-char #\c) (value #f))))
+
+(define command-name
+  (list-ref (command-line) 0))
+
+(define (usage-info)
+  (display "Screenshot utility for wayland using grim + slurp\n")
+  (display (format #f "USAGE: \x1B[1;32m~a\x1B[0m [options]\n\n" command-name))
+  (display "  -h, --help           display this help information\n")
+  (display "  -s, --select         capture a selected portion of the screen\n")
+  (display "  -d, --display=NAME   specify which display to capture by NAME\n")
+  (display "  -w, --wait=SECONDS   wait for SECONDS before capturing\n")
+  (display "  -o, --output=FILE    save photo to FILE instead of default\n")
+  (display "  -c, --copy           copy image to clipboard\n")
+  (display "  -n, --notify         display a notification of screenshot\n\n"))
+
+;; execute command and return output as a string
+(define (exec prog)
+  (let* ((port (open-input-pipe prog))
+		 (output (read-string port)))
+	(close-pipe port) output))
+
+(define (default-filename)
+  (let ((current-time (current-date)))
+	(format #f "SCREEN_~a.PNG"
+      (date->string current-time "~Y-~m-~d_~I-~M-~S-~p"))))
+
+(define (default-screenshot-dir)
+  (format #f "~a/~a"
+	(string-trim-right (exec "xdg-user-dir PICTURES")) "screenshots"))
+  
+(define outfile (format #f "~a/~a/~a" (string-trim-right (exec "xdg-user-dir PICTURES")) "screenshots" (default-filename)))
+(define grim+opts "grim -l 1")
+(define slurp+opts "slurp -d -F 'monospace' -s '#1A1D2701' -c '#76C5A4FF' -b '#1A1D27D0'")
+
+(let ((output-dir (default-screenshot-dir)))
+  (unless (file-exists? output-dir)
+	(mkdir output-dir)))
+
+(define full-command (format #f "~a" grim+opts))
+
+(define (notify text icon)
+  (system (format #f "notify-send -c screenshot -t 5000 '~a' --icon ~a" text icon))) 
+
+(define (clipboard filepath)
+  (system (format #f "wl-copy < ~a" filepath)))
+
+(define (main args)
+  ;; parse options
+  (let* ((options (getopt-long args option-spec))
+		 (help-flag (option-ref options 'help #f))
+		 (select-flag (option-ref options 'select #f))
+		 (display-flag (option-ref options 'display #f))
+		 (wait-flag (option-ref options 'wait "0"))
+		 (output-flag (option-ref options 'output #f))
+		 (notify-flag (option-ref options 'notify #f))
+		 (copy-flag (option-ref options 'copy #f)))
+	
+	(when help-flag
+	  (usage-info)
+	  (exit 0))
+
+	(let ((filename (or output-flag outfile)))
+
+	  (if select-flag
+		  (let ((geometry (string-trim-right (exec slurp+opts))))
+			(if (string-null? geometry)
+                (begin
+                  (display "Selection invalid")
+                  (exit 1))
+                (begin
+                  (set! full-command (format #f "~a -g '~a'" full-command geometry))
+                  (display full-command)))))
+	  (if display-flag
+		  (set! full-command (format #f "~a -o ~a" full-command display-flag)))
+	  
+	  (when (> (string->number wait-flag) 0)
+		(display (format #f "taking screenshot in ~a seconds\n" wait-flag))
+		(sleep (string->number wait-flag)))
+
+	  
+	  
+	  (set! full-command (format #f "~a ~a" full-command filename))
+	  ;; take the screenshot
+	  (system full-command)
+
+	  (if notify-flag
+		  (notify "Screenshot taken" filename))
+
+	  (if copy-flag
+		  (clipboard filename)))))
+
+(main (command-line))

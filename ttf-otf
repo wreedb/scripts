@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+# -*- python-ts -*-
+
+import fontforge
+import sys
+import os
+
+args = sys.argv
+
+def convert_ttf_otf(ttf_path, otf_path):
+    """Convert a TTF font file to OTF format."""
+    try:
+        font = fontforge.open(ttf_path)
+        font.generate(otf_path)
+        return True
+    except Exception as e:
+        print(f"Error converting {ttf_path}: {e}")
+        return False
+
+def convert_all_ttf_otf(in_dir, out_dir):
+    """Converts all ttf fonts in a directory to otf"""
+    if out_dir == "":
+        out_dir = in_dir
+
+    for filename in os.listdir(in_dir):
+        if filename.endswith(".ttf"):
+            ttf_path = os.path.join(in_dir, filename)
+            otf_path = os.path.join(out_dir, filename[:-4] + ".otf")
+            convert_ttf_otf(ttf_path, otf_path)
+
+in_dir_path = ""
+out_dir_path = ""
+
+match len(args):
+    case 0:
+        exit(1)
+    case 1:
+        exit(1)
+    case 2:
+        in_dir_path = args[1]
+    case 3:
+        in_dir_path = args[1]
+        out_dir_path = args[2]
+    case _:
+        print(f"ERROR: invalid command-line {args}")
+        exit(1)
+
+if os.path.exists(in_dir_path) == False:
+    print(f"ERROR: path {in_dir_path} does not exist, exiting...")
+
+if os.path.exists(out_dir_path) == False:
+    print(f"INFO: path {in_dir_path} does not exist, creating...")
+    os.mkdir(out_dir_path)
+
+convert_all_ttf_otf(in_dir_path, out_dir_path)

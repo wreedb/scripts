@@ -1,0 +1,9 @@
+#!/bin/sh
+
+BEMENU_OPTS=;
+
+exec /usr/bin/pinentry-bemenu \
+     --password indicator \
+     --fn "monospace 12" \
+     --monitor focused \
+     "$@"

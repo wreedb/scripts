@@ -1,0 +1,48 @@
+#!/bin/sh
+# -*- mode: bash-ts; -*-
+
+
+. "/etc/profile"
+. "${HOME}/.config/login/env.sh"
+. "${HOME}/.config/login/path.sh"
+
+# nvidia
+export GBM_BACKEND="nvidia-drm"
+export LIBVA_DRIVER_NAME="nvidia"
+export __GLX_VENDOR_LIBRARY_NAME="nvidia"
+export NVD_BACKEND="direct"
+
+# xdg
+export XDG_CURRENT_DESKTOP="Hyprland"
+export XDG_SESSION_DESKTOP="Hyprland"
+export XDG_SESSION_TYPE="wayland"
+
+# toolkits
+export SDL_VIDEODRIVER="wayland"
+export GDK_BACKEND="wayland"
+export GTK_A11Y="none"
+export NO_AT_BRIDGE="1"
+#export QT_QPA_PLATFORM="wayland"
+#export QT_QPA_PLATFORMTHEME="qt6ct"
+export QT_AUTO_SCREEN_SCALE_FACTOR="1"
+export QT_WAYLAND_DISABLE_WINDOWDECORATION="1"
+
+# applications
+export MOZ_ENABLE_WAYLAND="1"
+export MOZ_DISABLE_RDD_SANDBOX="1"
+export OZONE_PLATFORM="wayland"
+export ELECTRON_OZONE_PLATFORM_HINT="wayland"
+export _JAVA_AWT_WM_NONREPARENTING="1"
+
+# cursors
+export WLR_NO_HARDWARE_CURSORS="1"
+
+logdir="${HOME}/.local/var/log/hyprland"
+test -d "${logdir}" || mkdir -p "${logdir}"
+
+timestamp="$(date '+%F_%I-%M-%S-%p')"
+logname="${logdir}/${timestamp}.log"
+
+dbus-update-activation-environment --systemd --all
+
+exec dbus-run-session Hyprland 1> "${logname}" 2>&1

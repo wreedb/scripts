@@ -1,34 +1,100 @@
-#!/usr/bin/env perl
+#!/usr/bin/guile -s
+!#
 
-use strict;
-use warnings;
-use Getopt::Long;
+;; -*- scheme -*-
 
-GetOptions(
-    "up|u"   => \my $up,
-    "down|d" => \my $down,
-    "mute|m" => \my $mute,
-    "help|h" => \my $help
-) or die "Invalid command given to $0, see --help for usage information";
+(use-modules (ice-9 format)
+			 (ice-9 getopt-long)
+			 (ice-9 popen)
+			 (ice-9 rdelim)
+			 (ice-9 ftw)
+			 (srfi  srfi-19))
 
-if ($up) {
+(define option-spec
+  '((help (single-char #\h) (value #f))
+	(up   (single-char #\u) (value #f))
+	(down (single-char #\d) (value #f))
+	(mute (single-char #\m) (value #f))
+	(set  (single-char #\s) (value #t))
+	(get  (single-char #\g) (value #f))))
 
-  system "pamixer -i 5";
+(define command-name
+  (list-ref (command-line) 0))
 
-} elsif ($down) {
+(define (usage-info)
+  (display "Volume control for Pipewire\n")
+  (display (format #f "USAGE: \x1B[1;32m~a\x1B[0m [options]\n\n" command-name))
+  (display "  -h, --help      display this help information\n")
+  (display "  -u, --up        increase volume by 5%\n")
+  (display "  -d, --down      decrease volume by 5%\n")
+  (display "  -m, --mute      toggle mute\n")
+  (display "  -s, --set NUM   set volume percentage to NUM (0-100)%\n")
+  (display "  -g, --get       display current volume\n\n"))
 
-  system "pamixer -d 5";
+(define (exec program)
+  (let* ((in (open-input-pipe program))
+		 (out (read-string in)))
+	(close-pipe in) out))
 
-} elsif ($mute) {
+(define (toggle-mute)
+  (system "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"))
 
-  system "pamixer -t";
+(define (increase-vol)
+  (system "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"))
 
-} elsif ($help) {
+(define (decrease-vol)
+  (system "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"))
 
-  print "\x1B[1;3mvol\x1B[0m - USAGE:\n\n\t--up/-u\t\tIncrease volume by 5%\n\t--down/-d\tDecrease volume by 5%\n\t--mute/-m\tMute/Unmute volume\n\n";
+(define (set-vol percent)
+  (system (format #f "wpctl set-volume @DEFAULT_AUDIO_SINK@ ~a%" percent)))
 
-} else {
+(define (get-vol)
+  (exec "wpctl get-volume @DEFAULT_AUDIO_SINK@"))
 
-  print "\x1B[1;3mvol\x1B[0m - USAGE:\n\n\t--up/-u\t\tIncrease volume by 5%\n\t--down/-d\tDecrease volume by 5%\n\t--mute/-m\tMute/Unmute volume\n\n";
+(define (main args)
 
-}
+  (let* ((opts      (getopt-long args option-spec))
+		 (help-flag (option-ref opts 'help #f))
+		 (up-flag   (option-ref opts 'up #f))
+		 (down-flag (option-ref opts 'down #f))
+		 (mute-flag (option-ref opts 'mute #f))
+		 (set-flag  (option-ref opts 'set #f))
+		 (get-flag  (option-ref opts 'get #f)))
+
+	(when help-flag
+	  (usage-info)
+	  (exit 0))
+
+	(when set-flag
+	  (let ((percent (string->number set-flag)))
+		(unless (and (>= percent 0) (<= percent 100))
+		  (display (format #f "\x1B[1;31merror\x1B[0m: --set must be between 0 and 100, given: ~a\n" percent))
+		  (exit 1))
+		(set-vol percent)
+		(display (get-vol))
+		(exit 0)))
+	
+	(when mute-flag
+	  (toggle-mute)
+	  (display "muted\n")
+	  (exit 0))
+
+	(when get-flag
+	  (display (get-vol))
+	  (exit 0))
+	
+	(when (and up-flag down-flag)
+	  (display "\x1B[1;31merror\x1B[0m: cannot increase \x1B[3mand\x1B[0m decrease at the same time.\n")
+	  (exit 1))
+	
+	(when up-flag
+	  (increase-vol)
+	  (display (get-vol))
+	  (exit 0))
+	
+	(when down-flag
+	  (decrease-vol)
+	  (display (get-vol))
+	  (exit 0))))
+
+(main (command-line))

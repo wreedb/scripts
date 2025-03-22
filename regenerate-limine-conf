@@ -1,0 +1,77 @@
+#!/usr/bin/env -S guile -s
+!#
+
+;; -*- scheme -*- vim:ft=scheme
+
+(use-modules (ice-9 format)
+             (ice-9 popen)
+             (ice-9 rdelim)
+             (ice-9 regex)
+             ((ice-9 ftw) #:select (scandir)))
+
+(define (capture command)
+  (let* ((in (open-input-pipe command))
+         (out (read-string in)))
+    (close-pipe in) out))
+
+(define (get-root-uuid)
+  (string-trim-right (capture "blkid -s UUID -o value /dev/sda4")))
+
+(define ramdisks '())
+
+(for-each
+  (lambda (file)
+    (set! ramdisks (cons file ramdisks)))
+  (scandir "/boot"
+    (lambda (file)
+      (and (string-suffix? ".img" file) (not (string-prefix? "intel-ucode" file))))))
+
+(define (remove-suffix str suffix)
+  (let ((pattern (string-append (regexp-quote suffix) "$")))
+    (regexp-substitute/global #f pattern str 'pre)))
+
+(define (remove-prefix str prefx)
+  (let ((pattern (string-append "^" (regexp-quote prefx))))
+    (regexp-substitute/global #f pattern str 'post)))
+
+(define conffile "/boot/limine.conf")
+(define (append-file str)
+  (let ((handle (open-file conffile "a")))
+    (display str handle)
+    (close-port handle)))
+
+(define (sort-str-list lst)
+  (sort lst string<?))
+
+(rename-file "/boot/limine.conf" "/boot/.backup.limine.conf")
+
+(define newrds '())
+(for-each (lambda (file)
+  (set! newrds (cons
+    (remove-suffix (remove-prefix file "initramfs-") ".img") newrds))) ramdisks)
+
+(define initrds (sort-str-list newrds))
+
+(define rootid (get-root-uuid))
+
+(append-file (format #f "timeout: 3\n\n"))
+
+(for-each (lambda (str)
+  (append-file (format #f "/~a\n" str))
+  (append-file "\tprotocol: linux\n")
+  
+  (when (string-suffix? "-fallback" str)
+    (append-file (format #f "\tpath: boot():/vmlinuz-~a\n" (remove-suffix str "-fallback")))
+    (when (file-exists? "/boot/intel-ucode.img")
+      (append-file "\tmodule_path: boot():/intel-ucode.img\n")))
+  
+  (when (not (string-suffix? "-fallback" str))
+    (append-file (format #f "\tpath: boot():/vmlinuz-~a\n" str)))
+  
+  (append-file (format #f "\tmodule_path: boot():/initramfs-~a.img\n" str))
+  
+  
+  (append-file (format #f "\tcmdline: root=UUID=~a rw loglevel=1\n\n" rootid)))
+  initrds)
+
+(display "Limine configuration successfully generated\n")

@@ -1,0 +1,50 @@
+#!/usr/bin/env perl
+
+# -*- perl-ts -*-
+
+use strict;
+use warnings;
+
+my %interface_settings = (
+    "font-name" => "Roboto Condensed 12",
+    "monospace-font-name" => "JetBrains Mono 14",
+    "cursor-theme" => "bibata-modern-ice",
+    "cursor-size" => "24",
+    "icon-theme" => "default-icons",
+    "gtk-theme" => "default-theme",
+    "color-scheme" => "prefer-dark",
+    "toolkit-accessibility" => "false"
+);
+
+
+my %filechooser_settings = (
+    "clock-format" => "12h",
+    "show-hidden" => "true",
+    "show-size-column" => "true",
+    "show-type-column" => "true",
+    "sort-column" => "modified",
+    "sort-directories-first" => "true",
+    "startup-mode" => "cwd",
+    "window-size" => "(750, 850)",
+    "type-format" => "mime"
+);
+
+
+foreach my $key (keys %interface_settings)
+{
+    print "\x1B[1;33mgsetter\x1B[0m: setting ${key}\n";
+    my $command = "";
+    $command .= "gsettings set org.gnome.desktop.interface " . " ${key} " . "'$interface_settings{$key}'";
+    system "${command}";
+}
+
+foreach my $key (keys %filechooser_settings)
+{
+    print "\x1B[1;33mgsetter\x1B[0m: file-chooser setting ${key}\n";
+    my $command_one = "";
+    my $command_two = "";
+    $command_one .= "gsettings set org.gtk.Settings.FileChooser " . " ${key} " . "'$filechooser_settings{$key}'";
+    $command_two .= "gsettings set org.gtk.gtk4.Settings.FileChooser " . " ${key} " . "'$filechooser_settings{$key}'";
+    system "${command_one}";
+    system "${command_two}";
+}

@@ -1,5 +1,0 @@
-#!/bin/sh
-
-export CL_SOURCE_REGISTRY="$XDG_DATA_HOME/common-lisp/source"
-
-exec $HOME/.local/opt/sbcl/bin/sbcl --userinit $XDG_CONFIG_HOME/sbcl/sbclrc "$@"

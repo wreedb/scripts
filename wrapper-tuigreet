@@ -1,0 +1,12 @@
+#!/bin/sh
+
+/usr/bin/setfont ter-132b
+
+exec /usr/bin/tuigreet \
+	--sessions /home/wbr/.local/share/wayland-sessions \
+	--greeting "Welcome to hell" \
+	--time --time-format "%I:%M %p" \
+	--remember \
+	--asterisks \
+	--power-shutdown "systemctl poweroff" \
+	--power-reboot "systemctl reboot"

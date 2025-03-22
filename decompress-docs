@@ -1,0 +1,4 @@
+#!/bin/sh
+
+fd . /usr/share/man --type file --extension .gz --exec gzip -df {}
+fd . /usr/share/info --type file --extension .gz --exec gzip -df {}

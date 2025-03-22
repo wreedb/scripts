@@ -1,0 +1,44 @@
+#!/usr/bin/env perl
+# vim:ft=perl
+# -*- mode: perl-ts; -*-
+
+use strict;
+use warnings;
+use Getopt::Long;
+
+GetOptions(
+    'video|v=s' => \my $video_name
+) or die "incorrect options give to $0";
+
+my $display_one = "DP-2";
+my $display_two = "DVI-D-1";
+
+my $mpv_options = "no-audio loop";
+
+my $videos_dir = `xdg-user-dir VIDEOS`; chomp $videos_dir;
+my $video_wp_dir = $videos_dir . "/mpvpaper/";
+my $video_wallpaper = "";
+if ($video_name)
+{
+    $video_wallpaper = $video_wp_dir . $video_name . ".mp4";
+}
+
+sub pprint {
+    my $prefix = $_[0];
+    my $msg = $_[1];
+    print "\x1B[1;33m${prefix}\x1B[0m: ${msg}\n";
+}
+
+&pprint("OUTPUT 1", $display_one);
+&pprint("OUTPUT 2", $display_two);
+&pprint("MPV OPTIONS", $mpv_options);
+&pprint("VIDEO DIR", $videos_dir);
+&pprint("WALLPAPER", $video_wallpaper);
+
+sub setwp {
+    my $display = $_[0];
+    system "mpvpaper ${display} ${video_wallpaper} -o '${mpv_options}' 1>/dev/null 2>&1 &";
+}
+
+&setwp($display_one);
+&setwp($display_two);
